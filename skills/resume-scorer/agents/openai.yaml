@@ -1,0 +1,7 @@
+interface:
+  display_name: "Resume Scorer"
+  short_description: "Score resumes, projects, and JDs"
+  default_prompt: "Use $resume-scorer to score this resume or project against the JD and suggest the highest-impact edits."
+
+policy:
+  allow_implicit_invocation: true
