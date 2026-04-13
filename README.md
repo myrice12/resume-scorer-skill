@@ -1,57 +1,71 @@
-# resume-scorer-skill
+# 简历评分 Skill（resume-scorer）
 
-`resume-scorer` 是一个中英双语的 skill 项目，用于对中文或英文简历、单段项目经历和岗位 JD 做结构化打分，并输出优先级明确的修改建议。
+> 对中文或英文简历、单段项目经历、岗位 JD 做结构化打分，并给出明确的修改建议。
 
-仓库结构参考了 `YifeiCAO/shandong-xiangfu` 这种轻量级的 skill 优先布局，但在此基础上补充了可执行的 Python 评分器和测试用例，方便复现、验证和继续扩展。
+## 这是什么
 
-## 项目能力
+`resume-scorer` 是一个面向简历优化场景的 Skill 仓库，严格采用 `my-anti-distill` 的扁平项目结构：
 
-- 对 `resume`、`project`、`jd` 三类输入分别使用独立评分维度。
-- 支持中文、英文以及中英混合文本。
-- 当简历或项目经历与 JD 配套输入时，会额外计算岗位匹配度。
-- 输出优势项、风险项、缺失关键词和明确的修改建议。
-- 既可以作为 Codex skill 使用，也可以通过本地 CLI 运行。
+- 根目录直接放 `SKILL.md`
+- 评分规则拆到 `prompts/`
+- 使用示例放到 `examples/`
+- 补充 `README.md` 和 `INSTALL.md`
 
-## 快速开始
+这个 Skill 不依赖额外代码或 Python 包，核心能力全部通过 Skill 主流程和 prompt 文件来约束。
 
-```bash
-cd resume-scorer-skill
-python3 -m pip install -e .
-resume-scorer --text "Built a data platform with Python and SQL..." --kind project
-python3 skills/resume-scorer/scripts/score_resume.py --input-file sample_resume.txt --jd-file sample_jd.txt --kind resume --format json
-python3 -m pytest
+## 它做什么
+
+1. 识别输入是 `resume`、`project`、`jd`，还是“简历/项目 + JD 对标”
+2. 对简历进行五维评分：完整度、影响力、清晰度、针对性、可信度
+3. 对项目经历进行五维评分：背景上下文、个人主导度、技术深度、影响力、清晰度
+4. 对 JD 进行五维评分：岗位清晰度、要求具体度、结构完整度、吸引力、筛选效率
+5. 当提供目标 JD 时，额外输出匹配度、匹配关键词和缺失关键词
+6. 给出 3 到 5 条按优先级排序的修改建议，并在需要时生成改写版本
+
+## 安装
+
+见 [INSTALL.md](./INSTALL.md)。
+
+## 使用
+
+在 Claude Code 或兼容的 Skill 环境里触发：
+
+```text
+/resume-scorer
 ```
 
-## 仓库结构
+或直接说：
+
+- “帮我给这份简历打分”
+- “看看这段项目经历适不适合这个 JD”
+- “这个岗位 JD 写得怎么样”
+- “帮我把这份英文简历按目标岗位优化一下”
+
+## 项目结构
 
 ```text
 resume-scorer-skill/
+├── SKILL.md
+├── prompts/
+│   ├── classifier.md
+│   ├── scorer_resume.md
+│   ├── scorer_project.md
+│   └── scorer_jd.md
 ├── README.md
-├── pyproject.toml
-├── src/resume_scorer/
-│   ├── __init__.py
-│   ├── __main__.py
-│   ├── cli.py
-│   ├── models.py
-│   └── scorer.py
-├── skills/resume-scorer/
-│   ├── SKILL.md
-│   ├── agents/openai.yaml
-│   ├── references/
-│   │   ├── output-contract.md
-│   │   └── rubric.md
-│   └── scripts/score_resume.py
-└── tests/
-    ├── conftest.py
-    ├── test_repository.py
-    └── test_scorer.py
+├── INSTALL.md
+└── examples/
+    └── lihua_before_after.md
 ```
 
-## 评分维度
+## 输出风格
 
-- `resume`：完整度、影响力、清晰度、针对性、可信度
-- `project`：背景上下文、个人主导度、技术深度、影响力、清晰度
-- `jd`：岗位清晰度、要求具体度、结构完整度、吸引力、筛选效率
+输出默认包含：
 
-当 `resume` 或 `project` 同时提供目标 JD 时，评分器还会返回 `fit_score`，并标记匹配关键词与缺失关键词。
-# resume-scorer-skill
+- 一句话总评
+- 总分，必要时附 `fit score`
+- 分维度打分
+- 主要优势
+- 主要问题
+- 明确修改建议
+
+如果用户要求改写，还应输出优化后的 bullet 或段落，但不能编造原文不存在的事实。
